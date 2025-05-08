@@ -5,7 +5,7 @@ import 'package:harbour/core/theme/app_theme.dart';
 import 'package:harbour/features/auth/providers/auth_provider.dart' as app_auth;
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({Key? key}) : super(key: key);
+  const RegisterScreen({super.key});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();

@@ -5,7 +5,7 @@ import 'package:harbour/core/theme/app_theme.dart';
 import 'package:harbour/features/auth/providers/auth_provider.dart' as app_auth;
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();

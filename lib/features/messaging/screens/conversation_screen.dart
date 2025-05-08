@@ -8,7 +8,7 @@ import 'package:harbour/models/message_model.dart';
 import 'package:harbour/models/user_model.dart';
 
 class ConversationScreen extends StatefulWidget {
-  const ConversationScreen({Key? key}) : super(key: key);
+  const ConversationScreen({super.key});
 
   @override
   State<ConversationScreen> createState() => _ConversationScreenState();

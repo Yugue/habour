@@ -7,7 +7,7 @@ import 'package:harbour/features/discovery/providers/discovery_provider.dart';
 import 'package:harbour/models/user_model.dart';
 
 class DiscoveryScreen extends StatefulWidget {
-  const DiscoveryScreen({Key? key}) : super(key: key);
+  const DiscoveryScreen({super.key});
 
   @override
   State<DiscoveryScreen> createState() => _DiscoveryScreenState();
@@ -133,7 +133,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
           // Prompt responses (Hinge-style)
           ...profile.promptResponses.entries.map((entry) {
             return _buildPromptCard(entry.key, entry.value);
-          }).toList(),
+          }),
 
           // Roots section
           if (_hasRootsInfo(profile)) ...[

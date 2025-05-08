@@ -9,7 +9,7 @@ import 'package:harbour/models/match_model.dart';
 import 'package:harbour/models/user_model.dart';
 
 class MatchesScreen extends StatefulWidget {
-  const MatchesScreen({Key? key}) : super(key: key);
+  const MatchesScreen({super.key});
 
   @override
   State<MatchesScreen> createState() => _MatchesScreenState();

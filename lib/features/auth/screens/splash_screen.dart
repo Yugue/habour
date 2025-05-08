@@ -3,7 +3,7 @@ import 'package:harbour/core/constants/app_routes.dart';
 import 'package:harbour/core/theme/app_theme.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -53,6 +53,14 @@ class _SplashScreenState extends State<SplashScreen> {
             const SizedBox(height: 48),
             const CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+            const SizedBox(height: 24),
+            // Temporary button for Firebase testing
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/test-firebase');
+              },
+              child: const Text('Test Firebase'),
             ),
           ],
         ),

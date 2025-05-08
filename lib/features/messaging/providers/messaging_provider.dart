@@ -8,7 +8,7 @@ class MessagingProvider with ChangeNotifier {
   final FirebaseService _firebaseService;
 
   List<MatchModel> _matches = [];
-  Map<String, UserModel> _matchedUsers = {};
+  final Map<String, UserModel> _matchedUsers = {};
   List<MessageModel> _currentConversation = [];
   String? _currentMatchId;
   bool _isLoading = false;

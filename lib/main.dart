@@ -18,6 +18,7 @@ import 'package:harbour/features/discovery/screens/discovery_screen.dart';
 import 'package:harbour/features/messaging/screens/matches_screen.dart';
 import 'package:harbour/features/messaging/screens/conversation_screen.dart';
 import 'package:harbour/features/profile/screens/edit_profile_screen.dart';
+import 'package:harbour/test_firebase.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -94,6 +95,7 @@ class MyApp extends StatelessWidget {
           AppRoutes.discovery: (context) => const DiscoveryScreen(),
           AppRoutes.matches: (context) => const MatchesScreen(),
           AppRoutes.conversation: (context) => const ConversationScreen(),
+          '/test-firebase': (context) => const FirebaseTester(),
         },
       ),
     );
@@ -101,7 +103,7 @@ class MyApp extends StatelessWidget {
 }
 
 class AppScaffold extends StatefulWidget {
-  const AppScaffold({Key? key}) : super(key: key);
+  const AppScaffold({super.key});
 
   @override
   State<AppScaffold> createState() => _AppScaffoldState();

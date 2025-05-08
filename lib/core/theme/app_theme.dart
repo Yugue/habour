@@ -30,8 +30,6 @@ class AppTheme {
         onTertiary: white,
         error: error,
         onError: white,
-        background: background,
-        onBackground: textDark,
         surface: white,
         onSurface: textDark,
       ),
