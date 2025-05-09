@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:harbour/core/theme/app_theme.dart';
@@ -23,19 +24,38 @@ import 'package:harbour/test_firebase.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  bool firebaseInitialized = false;
+
   try {
+    // Initialize Firebase
     await Firebase.initializeApp();
-    print("Firebase initialized successfully");
+
+    try {
+      // Initialize Firebase App Check - This is crucial for authentication to work properly
+      await FirebaseAppCheck.instance.activate(
+        androidProvider: AndroidProvider.debug,
+        appleProvider: AppleProvider.debug,
+      );
+
+      print("Firebase initialized successfully with App Check");
+      firebaseInitialized = true;
+    } catch (appCheckError) {
+      print("Failed to initialize Firebase App Check: $appCheckError");
+      // Still consider Firebase initialized if only App Check failed
+      firebaseInitialized = true;
+    }
   } catch (e) {
     print("Failed to initialize Firebase: $e");
-    // Continue without Firebase for development purposes
+    print("Running in development mode without Firebase");
   }
 
-  runApp(const MyApp());
+  runApp(MyApp(firebaseInitialized: firebaseInitialized));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool firebaseInitialized;
+
+  const MyApp({super.key, this.firebaseInitialized = false});
 
   @override
   Widget build(BuildContext context) {
@@ -77,23 +97,31 @@ class MyApp extends StatelessWidget {
         theme: AppTheme.lightTheme,
         initialRoute: AppRoutes.splash,
         routes: {
+          // Splash route - decide where to go based on auth state
           AppRoutes.splash:
-              (context) => Consumer<User?>(
-                builder: (context, user, _) {
-                  if (user == null) {
-                    return const OnboardingScreen();
-                  } else {
-                    return const AppScaffold();
-                  }
-                },
-              ),
+              (context) =>
+                  firebaseInitialized
+                      ? Consumer<User?>(
+                        builder: (context, user, _) {
+                          if (user == null) {
+                            return const OnboardingScreen();
+                          } else {
+                            return const AppScaffold();
+                          }
+                        },
+                      )
+                      : const OnboardingScreen(), // Always start with onboarding if Firebase is not initialized
+          // Other routes - these will be directly navigated to
           AppRoutes.onboarding: (context) => const OnboardingScreen(),
           AppRoutes.login: (context) => const LoginScreen(),
           AppRoutes.register: (context) => const RegisterScreen(),
-          AppRoutes.profile: (context) => const ProfileScreen(),
+          AppRoutes.profile: (context) => const AppScaffold(initialTabIndex: 2),
           AppRoutes.editProfile: (context) => const EditProfileScreen(),
-          AppRoutes.discovery: (context) => const DiscoveryScreen(),
-          AppRoutes.matches: (context) => const MatchesScreen(),
+
+          // Main app routes - directly accessible after authentication
+          AppRoutes.discovery:
+              (context) => const AppScaffold(initialTabIndex: 0),
+          AppRoutes.matches: (context) => const AppScaffold(initialTabIndex: 1),
           AppRoutes.conversation: (context) => const ConversationScreen(),
           '/test-firebase': (context) => const FirebaseTester(),
         },
@@ -103,20 +131,28 @@ class MyApp extends StatelessWidget {
 }
 
 class AppScaffold extends StatefulWidget {
-  const AppScaffold({super.key});
+  final int initialTabIndex;
+
+  const AppScaffold({Key? key, this.initialTabIndex = 0}) : super(key: key);
 
   @override
   State<AppScaffold> createState() => _AppScaffoldState();
 }
 
 class _AppScaffoldState extends State<AppScaffold> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
 
   static const List<Widget> _screens = [
     DiscoveryScreen(),
     MatchesScreen(),
     ProfileScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialTabIndex;
+  }
 
   void _onItemTapped(int index) {
     setState(() {

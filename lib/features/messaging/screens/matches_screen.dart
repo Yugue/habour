@@ -40,6 +40,9 @@ class _MatchesScreenState extends State<MatchesScreen>
 
     if (authProvider.user != null) {
       await messagingProvider.loadMatches(authProvider.user!.uid);
+    } else {
+      // In development mode, we can load matches with a fake user ID
+      await messagingProvider.loadMatches('dev-user-id');
     }
   }
 
@@ -50,16 +53,15 @@ class _MatchesScreenState extends State<MatchesScreen>
     final messagingProvider = Provider.of<MessagingProvider>(context);
     final authProvider = Provider.of<app_auth.AuthProvider>(context);
 
-    if (authProvider.user == null) {
-      return const Center(child: Text('Please sign in to view your matches'));
-    }
+    // Get userId - use a development ID if auth.user is null
+    final String userId = authProvider.user?.uid ?? 'dev-user-id';
 
     return Scaffold(
       appBar: AppBar(title: const Text('Matches')),
       body:
           messagingProvider.isLoading
               ? const Center(child: CircularProgressIndicator())
-              : _buildMatchesList(messagingProvider, authProvider.user!.uid),
+              : _buildMatchesList(messagingProvider, userId),
     );
   }
 

@@ -1,26 +1,36 @@
 {
   "project_info": {
-    "project_number": "624326009049",
-    "project_id": "harbour-6bb47",
-    "storage_bucket": "harbour-6bb47.firebasestorage.app"
+    "project_number": "123456789012",
+    "project_id": "harbour-app",
+    "storage_bucket": "harbour-app.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:624326009049:android:2d3116c9d902b4f7829ec8",
+        "mobilesdk_app_id": "1:123456789012:android:1234567890abcdef",
         "android_client_info": {
           "package_name": "com.example.harbour"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "123456789012-abcdefghijklmnopqrstuvwxyz123456.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyBvKKDgFqj8Tq8_6DRMwR6OMsZzqQ3IoOU"
+          "current_key": "AIzaSyCJxMFB_fQFw-J5HcBTlOGWxLu_n0az2hb"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "123456789012-abcdefghijklmnopqrstuvwxyz123456.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

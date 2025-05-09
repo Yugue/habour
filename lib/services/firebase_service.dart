@@ -27,20 +27,36 @@ class FirebaseService {
   // Authentication methods
   Future<User?> signUp(String email, String password, String name) async {
     try {
+      print(
+        "FirebaseService: Starting user creation process with email: $email",
+      );
+
+      // Create the user in Firebase Auth
       final UserCredential result = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
+      print("FirebaseService: Auth user created successfully");
       final User? user = result.user;
 
       if (user != null) {
+        print(
+          "FirebaseService: Creating user profile in Firestore for UID: ${user.uid}",
+        );
         // Create user profile in Firestore
         await _createUserProfile(user.uid, name, email);
+        print("FirebaseService: User profile created successfully");
         return user;
       }
+      print("FirebaseService: User creation returned null user");
       return null;
     } catch (e) {
+      print("FirebaseService ERROR in signUp: $e");
+      if (e is FirebaseAuthException) {
+        print("FirebaseService ERROR code: ${e.code}");
+        print("FirebaseService ERROR message: ${e.message}");
+      }
       rethrow;
     }
   }
@@ -102,9 +118,11 @@ class FirebaseService {
         email: email,
         name: name,
         photoUrls: [],
-        birthDate: DateTime.now(), // This should be updated by the user
-        gender: '', // This should be updated by the user
-        interestedIn: '', // This should be updated by the user
+        birthDate: DateTime.now().subtract(
+          const Duration(days: 365 * 25),
+        ), // Default to 25 years old
+        gender: 'Not specified', // This should be updated by the user
+        interestedIn: 'Not specified', // This should be updated by the user
         isProfileComplete: false,
         createdAt: DateTime.now(),
         lastActive: DateTime.now(),
@@ -114,6 +132,7 @@ class FirebaseService {
 
       await _usersCollection.doc(userId).set(newUser.toMap());
     } catch (e) {
+      print("Error creating user profile: $e");
       rethrow;
     }
   }

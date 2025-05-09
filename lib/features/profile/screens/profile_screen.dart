@@ -36,8 +36,12 @@ class _ProfileScreenState extends State<ProfileScreen>
       listen: false,
     );
 
+    // In development mode, we can load a profile even if auth.user is null
     if (authProvider.user != null) {
       await profileProvider.loadUserProfile(authProvider.user!.uid);
+    } else {
+      // Load with a fake user ID for development
+      await profileProvider.loadUserProfile('dev-user-id');
     }
   }
 

@@ -32,8 +32,11 @@ class AuthProvider with ChangeNotifier {
       _error = null;
       notifyListeners();
 
+      print("Attempting to sign up with email: $email and name: $name");
       await _firebaseService.signUp(email, password, name);
+      print("Sign up successful");
     } catch (e) {
+      print("Error during sign up: $e");
       _error = _getAuthErrorMessage(e);
     } finally {
       _isLoading = false;

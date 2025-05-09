@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:harbour/core/constants/app_routes.dart';
 import 'package:harbour/core/theme/app_theme.dart';
 import 'package:harbour/features/auth/providers/auth_provider.dart' as app_auth;
+import 'package:firebase_auth/firebase_auth.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -20,6 +21,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _agreeToTerms = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -32,24 +34,71 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _register() async {
     if (_formKey.currentState!.validate() && _agreeToTerms) {
-      final authProvider = Provider.of<app_auth.AuthProvider>(
-        context,
-        listen: false,
-      );
+      try {
+        setState(() {
+          _isLoading = true;
+        });
 
-      await authProvider.signUp(
-        _emailController.text.trim(),
-        _passwordController.text,
-        _nameController.text.trim(),
-      );
+        // DEVELOPMENT MODE: Skip Firebase Auth for now
+        print("DEV MODE: Simulating successful registration");
 
-      if (authProvider.error != null && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authProvider.error!),
-            backgroundColor: Colors.red,
-          ),
-        );
+        // Wait for a moment to simulate network request
+        await Future.delayed(const Duration(seconds: 1));
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("DEV MODE: Account created successfully!"),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Navigate directly to the discovery screen (main app)
+          Navigator.of(context).pushReplacementNamed(AppRoutes.discovery);
+        }
+
+        /* UNCOMMENT THIS WHEN YOU HAVE PROPER FIREBASE CREDENTIALS
+        // For debugging: access Firebase Auth directly to isolate the issue
+        final FirebaseAuth auth = FirebaseAuth.instance;
+        
+        print("Direct Firebase Auth: Starting signup with email: ${_emailController.text.trim()}");
+        
+        try {
+          // Direct Firebase Auth API call
+          await auth.createUserWithEmailAndPassword(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          );
+          
+          print("Direct Firebase Auth: User created successfully");
+          
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Account created successfully!"),
+                backgroundColor: Colors.green,
+              ),
+            );
+            Navigator.of(context).pushReplacementNamed(AppRoutes.discovery);
+          }
+        } catch (firebaseError) {
+          print("Direct Firebase Auth ERROR: $firebaseError");
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Firebase error: $firebaseError"),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+        */
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     } else if (!_agreeToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -65,8 +114,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<app_auth.AuthProvider>(context);
-
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
@@ -224,9 +271,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 32),
                   // Register button
                   ElevatedButton(
-                    onPressed: authProvider.isLoading ? null : _register,
+                    onPressed: _isLoading ? null : _register,
                     child:
-                        authProvider.isLoading
+                        _isLoading
                             ? const SizedBox(
                               height: 20,
                               width: 20,

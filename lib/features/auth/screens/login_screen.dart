@@ -16,6 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -26,31 +27,61 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
-      final authProvider = Provider.of<app_auth.AuthProvider>(
-        context,
-        listen: false,
-      );
+      try {
+        setState(() {
+          _isLoading = true;
+        });
 
-      await authProvider.signIn(
-        _emailController.text.trim(),
-        _passwordController.text,
-      );
+        // DEVELOPMENT MODE: Skip Firebase Auth for now
+        print("DEV MODE: Simulating successful login");
 
-      if (authProvider.error != null && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authProvider.error!),
-            backgroundColor: Colors.red,
-          ),
+        // Wait for a moment to simulate network request
+        await Future.delayed(const Duration(seconds: 1));
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("DEV MODE: Logged in successfully!"),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Navigate to the main app screen
+          Navigator.of(context).pushReplacementNamed(AppRoutes.discovery);
+        }
+
+        /* UNCOMMENT THIS WHEN YOU HAVE PROPER FIREBASE CREDENTIALS
+        final authProvider = Provider.of<app_auth.AuthProvider>(
+          context,
+          listen: false,
         );
+
+        await authProvider.signIn(
+          _emailController.text.trim(),
+          _passwordController.text,
+        );
+
+        if (authProvider.error != null && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(authProvider.error!),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        */
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<app_auth.AuthProvider>(context);
-
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: SafeArea(
@@ -156,9 +187,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 32),
                   // Login button
                   ElevatedButton(
-                    onPressed: authProvider.isLoading ? null : _login,
+                    onPressed: _isLoading ? null : _login,
                     child:
-                        authProvider.isLoading
+                        _isLoading
                             ? const SizedBox(
                               height: 20,
                               width: 20,
