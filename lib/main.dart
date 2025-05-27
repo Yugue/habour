@@ -4,6 +4,7 @@ import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:harbour/core/theme/app_theme.dart';
+import 'package:harbour/core/config/app_config.dart';
 import 'package:harbour/services/firebase_service.dart';
 import 'package:harbour/features/auth/screens/login_screen.dart';
 import 'package:harbour/features/auth/screens/register_screen.dart';
@@ -24,36 +25,51 @@ import 'package:harbour/test_firebase.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialize app configuration
+  await AppConfig.initialize();
+
   bool firebaseInitialized = false;
 
   try {
-    // Initialize Firebase
-    await Firebase.initializeApp();
+    // Initialize Firebase only in production or if explicitly enabled
+    if (AppConfig.isProduction || !AppConfig.useMockData) {
+      await Firebase.initializeApp();
 
-    try {
-      // Initialize Firebase App Check - This is crucial for authentication to work properly
-      await FirebaseAppCheck.instance.activate(
-        // Use debug providers only in debug mode
-        androidProvider:
-            const bool.fromEnvironment('dart.vm.product')
-                ? AndroidProvider.playIntegrity
-                : AndroidProvider.debug,
-        appleProvider:
-            const bool.fromEnvironment('dart.vm.product')
-                ? AppleProvider.deviceCheck
-                : AppleProvider.debug,
-      );
+      try {
+        // Initialize Firebase App Check - This is crucial for authentication to work properly
+        await FirebaseAppCheck.instance.activate(
+          // Use debug providers only in debug mode
+          androidProvider:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? AndroidProvider.playIntegrity
+                  : AndroidProvider.debug,
+          appleProvider:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? AppleProvider.deviceCheck
+                  : AppleProvider.debug,
+        );
 
-      print("Firebase initialized successfully with App Check");
-      firebaseInitialized = true;
-    } catch (appCheckError) {
-      print("Failed to initialize Firebase App Check: $appCheckError");
-      // Still consider Firebase initialized if only App Check failed
-      firebaseInitialized = true;
+        if (AppConfig.enableLogging) {
+          print("Firebase initialized successfully with App Check");
+        }
+        firebaseInitialized = true;
+      } catch (appCheckError) {
+        if (AppConfig.enableLogging) {
+          print("Failed to initialize Firebase App Check: $appCheckError");
+        }
+        // Still consider Firebase initialized if only App Check failed
+        firebaseInitialized = true;
+      }
+    } else {
+      if (AppConfig.enableLogging) {
+        print("Running in development mode with mock data");
+      }
     }
   } catch (e) {
-    print("Failed to initialize Firebase: $e");
-    print("Running in development mode without Firebase");
+    if (AppConfig.enableLogging) {
+      print("Failed to initialize Firebase: $e");
+      print("Running in development mode without Firebase");
+    }
   }
 
   runApp(MyApp(firebaseInitialized: firebaseInitialized));

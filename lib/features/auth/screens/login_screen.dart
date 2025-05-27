@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:harbour/core/constants/app_routes.dart';
 import 'package:harbour/core/theme/app_theme.dart';
+import 'package:harbour/core/config/app_config.dart';
+import 'package:harbour/features/auth/providers/auth_provider.dart' as app_auth;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,44 +33,59 @@ class _LoginScreenState extends State<LoginScreen> {
           _isLoading = true;
         });
 
-        // DEVELOPMENT MODE: Skip Firebase Auth for now
-        print("DEV MODE: Simulating successful login");
+        if (AppConfig.useMockData) {
+          // Development mode: Skip Firebase Auth
+          if (AppConfig.enableLogging) {
+            print("DEV MODE: Simulating successful login");
+          }
 
-        // Wait for a moment to simulate network request
-        await Future.delayed(const Duration(seconds: 1));
+          // Wait for a moment to simulate network request
+          await Future.delayed(const Duration(seconds: 1));
 
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("DEV MODE: Logged in successfully!"),
-              backgroundColor: Colors.green,
-            ),
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("DEV MODE: Logged in successfully!"),
+                backgroundColor: Colors.green,
+              ),
+            );
+
+            // Navigate to the main app screen
+            Navigator.of(context).pushReplacementNamed(AppRoutes.discovery);
+          }
+        } else {
+          // Production mode: Use Firebase Auth
+          final authProvider = Provider.of<app_auth.AuthProvider>(
+            context,
+            listen: false,
           );
 
-          // Navigate to the main app screen
-          Navigator.of(context).pushReplacementNamed(AppRoutes.discovery);
+          await authProvider.signIn(
+            _emailController.text.trim(),
+            _passwordController.text,
+          );
+
+          if (authProvider.error != null && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(authProvider.error!),
+                backgroundColor: Colors.red,
+              ),
+            );
+          } else if (mounted) {
+            // Navigate on successful login
+            Navigator.of(context).pushReplacementNamed(AppRoutes.discovery);
+          }
         }
-
-        /* UNCOMMENT THIS WHEN YOU HAVE PROPER FIREBASE CREDENTIALS
-        final authProvider = Provider.of<app_auth.AuthProvider>(
-          context,
-          listen: false,
-        );
-
-        await authProvider.signIn(
-          _emailController.text.trim(),
-          _passwordController.text,
-        );
-
-        if (authProvider.error != null && mounted) {
+      } catch (e) {
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(authProvider.error!),
+              content: Text('Login failed: ${e.toString()}'),
               backgroundColor: Colors.red,
             ),
           );
         }
-        */
       } finally {
         if (mounted) {
           setState(() {

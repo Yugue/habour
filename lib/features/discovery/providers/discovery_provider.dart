@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../../../models/user_model.dart';
 import '../../../services/firebase_service.dart';
+import '../../../core/config/app_config.dart';
 
 class DiscoveryProvider with ChangeNotifier {
   final FirebaseService _firebaseService;
@@ -11,9 +12,6 @@ class DiscoveryProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   int _currentProfileIndex = 0;
-
-  // Development mode flag
-  final bool _devMode = true; // Set to false when you have real Firebase setup
 
   DiscoveryProvider({required FirebaseService firebaseService})
     : _firebaseService = firebaseService;
@@ -35,7 +33,7 @@ class DiscoveryProvider with ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      if (_devMode) {
+      if (AppConfig.useMockData) {
         // In development mode, generate mock profiles
         await Future.delayed(
           const Duration(milliseconds: 800),
@@ -176,7 +174,7 @@ class DiscoveryProvider with ChangeNotifier {
         return;
       }
 
-      if (_devMode) {
+      if (AppConfig.useMockData) {
         // Just simulate liking in dev mode
         // Move to the next profile
         _moveToNextProfile();

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:harbour/core/constants/app_routes.dart';
 import 'package:harbour/core/theme/app_theme.dart';
+import 'package:harbour/core/config/app_config.dart';
+import 'package:harbour/features/auth/providers/auth_provider.dart' as app_auth;
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -36,40 +39,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
           _isLoading = true;
         });
 
-        // DEVELOPMENT MODE: Skip Firebase Auth for now
-        print("DEV MODE: Simulating successful registration");
+        if (AppConfig.useMockData) {
+          // Development mode: Skip Firebase Auth
+          if (AppConfig.enableLogging) {
+            print("DEV MODE: Simulating successful registration");
+          }
 
-        // Wait for a moment to simulate network request
-        await Future.delayed(const Duration(seconds: 1));
+          // Wait for a moment to simulate network request
+          await Future.delayed(const Duration(seconds: 1));
 
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("DEV MODE: Account created successfully!"),
-              backgroundColor: Colors.green,
-            ),
-          );
-
-          // Navigate directly to the discovery screen (main app)
-          Navigator.of(context).pushReplacementNamed(AppRoutes.discovery);
-        }
-
-        /* UNCOMMENT THIS WHEN YOU HAVE PROPER FIREBASE CREDENTIALS
-        // For debugging: access Firebase Auth directly to isolate the issue
-        final FirebaseAuth auth = FirebaseAuth.instance;
-        
-        print("Direct Firebase Auth: Starting signup with email: ${_emailController.text.trim()}");
-        
-        try {
-          // Direct Firebase Auth API call
-          await auth.createUserWithEmailAndPassword(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-          );
-          
-          print("Direct Firebase Auth: User created successfully");
-          
           if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("DEV MODE: Account created successfully!"),
+                backgroundColor: Colors.green,
+              ),
+            );
+
+            // Navigate directly to the discovery screen (main app)
+            Navigator.of(context).pushReplacementNamed(AppRoutes.discovery);
+          }
+        } else {
+          // Production mode: Use Firebase Auth
+          final authProvider = Provider.of<app_auth.AuthProvider>(
+            context,
+            listen: false,
+          );
+
+          await authProvider.signUp(
+            _emailController.text.trim(),
+            _passwordController.text,
+            _nameController.text.trim(),
+          );
+
+          if (authProvider.error != null && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(authProvider.error!),
+                backgroundColor: Colors.red,
+              ),
+            );
+          } else if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text("Account created successfully!"),
@@ -78,18 +88,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
             );
             Navigator.of(context).pushReplacementNamed(AppRoutes.discovery);
           }
-        } catch (firebaseError) {
-          print("Direct Firebase Auth ERROR: $firebaseError");
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text("Firebase error: $firebaseError"),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
         }
-        */
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Registration failed: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       } finally {
         if (mounted) {
           setState(() {

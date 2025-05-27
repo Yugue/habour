@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../models/user_model.dart';
 import '../../../services/firebase_service.dart';
+import '../../../core/config/app_config.dart';
 
 class ProfileProvider with ChangeNotifier {
   final FirebaseService _firebaseService;
@@ -9,9 +10,6 @@ class ProfileProvider with ChangeNotifier {
   UserModel? _userProfile;
   bool _isLoading = false;
   String? _error;
-
-  // Development mode flag
-  final bool _devMode = true; // Set to false when you have real Firebase setup
 
   ProfileProvider({required FirebaseService firebaseService})
     : _firebaseService = firebaseService;
@@ -26,7 +24,7 @@ class ProfileProvider with ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      if (_devMode) {
+      if (AppConfig.useMockData) {
         // In development mode, generate a mock user profile
         await Future.delayed(
           const Duration(milliseconds: 800),
@@ -86,7 +84,7 @@ class ProfileProvider with ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      if (_devMode) {
+      if (AppConfig.useMockData) {
         // Just simulate an update in dev mode
         await Future.delayed(const Duration(milliseconds: 600));
         _userProfile = updatedProfile;
@@ -109,7 +107,7 @@ class ProfileProvider with ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      if (_devMode) {
+      if (AppConfig.useMockData) {
         // Simulate uploading an image in dev mode
         await Future.delayed(const Duration(seconds: 1));
 

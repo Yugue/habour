@@ -6,23 +6,39 @@ import 'package:uuid/uuid.dart';
 import '../models/user_model.dart';
 import '../models/match_model.dart';
 import '../models/message_model.dart';
+import '../core/config/app_config.dart';
 
 class FirebaseService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+  // Lazy initialization of Firebase instances
+  FirebaseAuth? _auth;
+  FirebaseFirestore? _firestore;
+  FirebaseStorage? _storage;
 
-  // Collection references
-  final CollectionReference _usersCollection = FirebaseFirestore.instance
-      .collection('users');
-  final CollectionReference _matchesCollection = FirebaseFirestore.instance
-      .collection('matches');
-  final CollectionReference _messagesCollection = FirebaseFirestore.instance
-      .collection('messages');
+  FirebaseAuth get auth {
+    _auth ??= FirebaseAuth.instance;
+    return _auth!;
+  }
+
+  FirebaseFirestore get firestore {
+    _firestore ??= FirebaseFirestore.instance;
+    return _firestore!;
+  }
+
+  FirebaseStorage get storage {
+    _storage ??= FirebaseStorage.instance;
+    return _storage!;
+  }
+
+  // Collection references (lazy)
+  CollectionReference get _usersCollection => firestore.collection('users');
+  CollectionReference get _matchesCollection => firestore.collection('matches');
+  CollectionReference get _messagesCollection =>
+      firestore.collection('messages');
 
   // Current user
-  User? get currentUser => _auth.currentUser;
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  User? get currentUser => AppConfig.useMockData ? null : auth.currentUser;
+  Stream<User?> get authStateChanges =>
+      AppConfig.useMockData ? Stream.value(null) : auth.authStateChanges();
 
   // Authentication methods
   Future<User?> signUp(String email, String password, String name) async {
@@ -32,7 +48,7 @@ class FirebaseService {
       );
 
       // Create the user in Firebase Auth
-      final UserCredential result = await _auth.createUserWithEmailAndPassword(
+      final UserCredential result = await auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -63,7 +79,7 @@ class FirebaseService {
 
   Future<User?> signIn(String email, String password) async {
     try {
-      final UserCredential result = await _auth.signInWithEmailAndPassword(
+      final UserCredential result = await auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -92,7 +108,7 @@ class FirebaseService {
         });
       }
 
-      await _auth.signOut();
+      await auth.signOut();
     } catch (e) {
       rethrow;
     }
@@ -100,7 +116,7 @@ class FirebaseService {
 
   Future<void> resetPassword(String email) async {
     try {
-      await _auth.sendPasswordResetEmail(email: email);
+      await auth.sendPasswordResetEmail(email: email);
     } catch (e) {
       rethrow;
     }
@@ -163,7 +179,7 @@ class FirebaseService {
   Future<String> uploadProfileImage(File imageFile, String userId) async {
     try {
       final String fileName = '${userId}_${Uuid().v4()}';
-      final Reference storageRef = _storage.ref().child(
+      final Reference storageRef = storage.ref().child(
         'profile_images/$fileName',
       );
 
@@ -299,7 +315,7 @@ class FirebaseService {
               .get();
 
       // Create a batch to update multiple messages at once
-      final WriteBatch batch = _firestore.batch();
+      final WriteBatch batch = firestore.batch();
 
       for (var doc in unreadMessages.docs) {
         batch.update(doc.reference, {'isRead': true});

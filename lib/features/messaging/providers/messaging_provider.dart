@@ -4,6 +4,7 @@ import '../../../models/match_model.dart';
 import '../../../models/message_model.dart';
 import '../../../models/user_model.dart';
 import '../../../services/firebase_service.dart';
+import '../../../core/config/app_config.dart';
 import 'dart:math' as math;
 
 class MessagingProvider with ChangeNotifier {
@@ -15,9 +16,6 @@ class MessagingProvider with ChangeNotifier {
   String? _currentMatchId;
   bool _isLoading = false;
   String? _error;
-
-  // Development mode flag
-  final bool _devMode = true; // Set to false when you have real Firebase setup
 
   MessagingProvider({required FirebaseService firebaseService})
     : _firebaseService = firebaseService;
@@ -39,7 +37,7 @@ class MessagingProvider with ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      if (_devMode) {
+      if (AppConfig.useMockData) {
         // In development mode, generate mock matches and users
         await Future.delayed(
           const Duration(milliseconds: 800),
@@ -205,7 +203,7 @@ class MessagingProvider with ChangeNotifier {
       _currentConversation = [];
       notifyListeners();
 
-      if (_devMode) {
+      if (AppConfig.useMockData) {
         // Generate mock messages for this conversation
         await Future.delayed(
           const Duration(milliseconds: 600),
@@ -400,7 +398,7 @@ class MessagingProvider with ChangeNotifier {
         throw Exception('No active conversation');
       }
 
-      if (_devMode) {
+      if (AppConfig.useMockData) {
         // Simulate sending a message in development mode
         MatchModel? match;
         int matchIndex = -1;
@@ -500,7 +498,7 @@ class MessagingProvider with ChangeNotifier {
   }
 
   UserModel? getMatchedUser(MatchModel match) {
-    if (_devMode) {
+    if (AppConfig.useMockData) {
       // In development mode, look up the matched user directly
       // We should use the user1Id as the current user ID (not a hardcoded ID)
       final String currentUserId = match.user1Id;
