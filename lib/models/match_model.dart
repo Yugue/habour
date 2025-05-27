@@ -16,6 +16,7 @@ class MatchModel {
   final bool hasUnreadMessages;
   final int messageCount;
   final Map<String, dynamic>? compatibilityMetrics;
+  final bool isCurrentUserTurn;
 
   MatchModel({
     required this.id,
@@ -31,6 +32,7 @@ class MatchModel {
     this.hasUnreadMessages = false,
     this.messageCount = 0,
     this.compatibilityMetrics,
+    this.isCurrentUserTurn = false,
   });
 
   // Factory constructor to create a MatchModel from a Firebase document
@@ -57,6 +59,7 @@ class MatchModel {
       hasUnreadMessages: data['hasUnreadMessages'] ?? false,
       messageCount: data['messageCount'] ?? 0,
       compatibilityMetrics: data['compatibilityMetrics'],
+      isCurrentUserTurn: data['isCurrentUserTurn'] ?? false,
     );
   }
 
@@ -76,6 +79,7 @@ class MatchModel {
       'hasUnreadMessages': hasUnreadMessages,
       'messageCount': messageCount,
       'compatibilityMetrics': compatibilityMetrics,
+      'isCurrentUserTurn': isCurrentUserTurn,
     };
   }
 
@@ -94,6 +98,7 @@ class MatchModel {
     bool? hasUnreadMessages,
     int? messageCount,
     Map<String, dynamic>? compatibilityMetrics,
+    bool? isCurrentUserTurn,
   }) {
     return MatchModel(
       id: id ?? this.id,
@@ -109,6 +114,7 @@ class MatchModel {
       hasUnreadMessages: hasUnreadMessages ?? this.hasUnreadMessages,
       messageCount: messageCount ?? this.messageCount,
       compatibilityMetrics: compatibilityMetrics ?? this.compatibilityMetrics,
+      isCurrentUserTurn: isCurrentUserTurn ?? this.isCurrentUserTurn,
     );
   }
 

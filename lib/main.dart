@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:harbour/core/theme/app_theme.dart';
 import 'package:harbour/services/firebase_service.dart';
-import 'package:harbour/features/auth/screens/splash_screen.dart';
 import 'package:harbour/features/auth/screens/login_screen.dart';
 import 'package:harbour/features/auth/screens/register_screen.dart';
 import 'package:harbour/features/auth/providers/auth_provider.dart' as app_auth;
@@ -19,6 +18,7 @@ import 'package:harbour/features/discovery/screens/discovery_screen.dart';
 import 'package:harbour/features/messaging/screens/matches_screen.dart';
 import 'package:harbour/features/messaging/screens/conversation_screen.dart';
 import 'package:harbour/features/profile/screens/edit_profile_screen.dart';
+import 'package:harbour/features/profile/screens/view_profile_screen.dart';
 import 'package:harbour/test_firebase.dart';
 
 void main() async {
@@ -33,8 +33,15 @@ void main() async {
     try {
       // Initialize Firebase App Check - This is crucial for authentication to work properly
       await FirebaseAppCheck.instance.activate(
-        androidProvider: AndroidProvider.debug,
-        appleProvider: AppleProvider.debug,
+        // Use debug providers only in debug mode
+        androidProvider:
+            const bool.fromEnvironment('dart.vm.product')
+                ? AndroidProvider.playIntegrity
+                : AndroidProvider.debug,
+        appleProvider:
+            const bool.fromEnvironment('dart.vm.product')
+                ? AppleProvider.deviceCheck
+                : AppleProvider.debug,
       );
 
       print("Firebase initialized successfully with App Check");
@@ -123,6 +130,7 @@ class MyApp extends StatelessWidget {
               (context) => const AppScaffold(initialTabIndex: 0),
           AppRoutes.matches: (context) => const AppScaffold(initialTabIndex: 1),
           AppRoutes.conversation: (context) => const ConversationScreen(),
+          AppRoutes.viewProfile: (context) => const ViewProfileScreen(),
           '/test-firebase': (context) => const FirebaseTester(),
         },
       ),
@@ -133,7 +141,7 @@ class MyApp extends StatelessWidget {
 class AppScaffold extends StatefulWidget {
   final int initialTabIndex;
 
-  const AppScaffold({Key? key, this.initialTabIndex = 0}) : super(key: key);
+  const AppScaffold({super.key, this.initialTabIndex = 0});
 
   @override
   State<AppScaffold> createState() => _AppScaffoldState();

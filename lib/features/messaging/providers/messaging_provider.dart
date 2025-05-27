@@ -4,6 +4,7 @@ import '../../../models/match_model.dart';
 import '../../../models/message_model.dart';
 import '../../../models/user_model.dart';
 import '../../../services/firebase_service.dart';
+import 'dart:math' as math;
 
 class MessagingProvider with ChangeNotifier {
   final FirebaseService _firebaseService;
@@ -44,6 +45,7 @@ class MessagingProvider with ChangeNotifier {
           const Duration(milliseconds: 800),
         ); // Simulate network delay
 
+        // Always use the provided userId parameter (don't hardcode a different ID)
         final mockData = _generateMockMatchesAndUsers(userId);
         _matches = mockData.matches;
         mockData.users.forEach((id, user) {
@@ -78,6 +80,18 @@ class MessagingProvider with ChangeNotifier {
     final List<MatchModel> mockMatches = [];
     final Map<String, UserModel> mockUsers = {};
 
+    // Create consistent last messages (most recent) for users with conversations
+    final Map<String, String> lastMessagesForUsers = {
+      'Emma': 'Would you like to grab coffee sometime?',
+      'Olivia': 'I enjoyed our conversation about faith.',
+      'Ava': 'Thanks for sharing about your family traditions!',
+      'Isabella': 'What church do you attend?',
+      'Sophia': 'Do you enjoy cooking? I love trying new recipes.',
+      'Charlotte': 'Looking forward to meeting you!',
+      'Mia': 'I see you enjoy hiking too! Where is your favorite trail?',
+      'Amelia': 'What are your thoughts on traditional family values?',
+    };
+
     final List<String> names = [
       'Emma',
       'Olivia',
@@ -93,9 +107,21 @@ class MessagingProvider with ChangeNotifier {
     for (int i = 0; i < 5; i++) {
       final String matchId = uuid.v4();
       final String otherUserId = uuid.v4();
+      final String name = names[i % names.length];
       final DateTime matchTime = DateTime.now().subtract(
         Duration(days: i, hours: i * 2),
       );
+
+      // Determine if it's the current user's turn to reply (default false)
+      final bool isCurrentUserTurn =
+          i == 3; // One conversation where it's your turn
+
+      // Create message preview for conversations with messages
+      String? messagePreview;
+      if (i >= 2) {
+        // Use the last message for the preview, not the first
+        messagePreview = lastMessagesForUsers[name] ?? 'Hello!';
+      }
 
       // Create a match
       final match = MatchModel(
@@ -109,9 +135,9 @@ class MessagingProvider with ChangeNotifier {
         matchedAt: matchTime,
         messageCount: i < 2 ? 0 : i * 3, // First two matches have no messages
         lastMessageAt: i < 2 ? null : matchTime.add(const Duration(hours: 1)),
-        lastMessagePreview:
-            i < 2 ? null : 'Hey there! Looking forward to chatting with you!',
+        lastMessagePreview: messagePreview,
         hasUnreadMessages: i == 2, // One match has unread messages
+        isCurrentUserTurn: isCurrentUserTurn, // Explicitly set who's turn it is
       );
 
       mockMatches.add(match);
@@ -120,7 +146,7 @@ class MessagingProvider with ChangeNotifier {
       final user = UserModel(
         id: otherUserId,
         email: 'user$i@example.com',
-        name: names[i % names.length],
+        name: name,
         photoUrls: [],
         birthDate: DateTime(1990 + i, 1 + i, 1 + i * 2),
         gender: 'Female',
@@ -184,7 +210,41 @@ class MessagingProvider with ChangeNotifier {
         await Future.delayed(
           const Duration(milliseconds: 600),
         ); // Simulate network delay
-        _currentConversation = _generateMockMessages(matchId, currentUserId);
+
+        // Find the match or create a placeholder for new matches
+        try {
+          // Try to find the match in existing matches
+          int matchIndex = -1;
+          if (_matches.isNotEmpty) {
+            matchIndex = _matches.indexWhere((m) => m.id == matchId);
+          }
+
+          if (matchIndex >= 0 && matchIndex < _matches.length) {
+            // Mark messages as read in the match
+            final updatedMatch = _matches[matchIndex].copyWith(
+              hasUnreadMessages: false,
+              // Only change turn if current user is receiving messages
+              isCurrentUserTurn: _matches[matchIndex].isCurrentUserTurn,
+            );
+            _matches[matchIndex] = updatedMatch;
+          } else if (_matches.isNotEmpty) {
+            // If not found but we have some matches, create a placeholder entry
+            print(
+              'Match not found in _matches, creating placeholder for: $matchId',
+            );
+          }
+        } catch (e) {
+          print('Error finding match: $e');
+        }
+
+        // Generate mock messages regardless
+        try {
+          _currentConversation = _generateMockMessages(matchId, currentUserId);
+        } catch (e) {
+          print('Error generating mock messages: $e');
+          _currentConversation = [];
+        }
+
         _isLoading = false;
         notifyListeners();
       } else {
@@ -209,26 +269,48 @@ class MessagingProvider with ChangeNotifier {
     String matchId,
     String currentUserId,
   ) {
-    // Find the match to get the other user's ID
-    final match = _matches.firstWhere((m) => m.id == matchId);
-    final String otherUserId =
-        match.user1Id == currentUserId ? match.user2Id : match.user1Id;
+    // Try to find the match
+    MatchModel? match;
+    String otherUserId = 'unknown-user';
+    bool hasUnreadMessages = false;
+    int messageCount = 0;
+    bool isCurrentUserTurn = false; // Default to false if not found
+    String? matchPreview;
 
-    // If this is one of the first two matches, return no messages
-    if (match.messageCount == 0) {
+    try {
+      match = _matches.firstWhere((m) => m.id == matchId);
+      otherUserId = match.user2Id; // In dev mode, current user is always user1
+      hasUnreadMessages = match.hasUnreadMessages;
+      messageCount = match.messageCount;
+      isCurrentUserTurn = match.isCurrentUserTurn;
+      matchPreview = match.lastMessagePreview;
+
+      // Get the matched user's name (currently unused but may be needed for future features)
+      // final matchedUser = _matchedUsers[otherUserId];
+      // if (matchedUser != null) {
+      //   otherUserName = matchedUser.name;
+      // }
+    } catch (e) {
+      // If match not found, create a temporary ID and return empty messages
+      // This happens when navigating directly to a conversation
+      print('Match not found for ID: $matchId. Using empty messages.');
+      return [];
+    }
+
+    // If this is one of the matches with no messages, return empty list
+    if (messageCount == 0) {
       return [];
     }
 
     final Uuid uuid = Uuid();
     final List<MessageModel> messages = [];
 
-    // Sample messages from the other user
-    final List<String> otherUserMessages = [
+    // Sample messages from the other user - ensure first message matches preview
+    final List<String> initialMessages = [
       'Hi there! I noticed we have similar values. How are you?',
       'I really enjoy hiking and spending time outdoors. What about you?',
       'What church do you attend?',
       'Tell me more about your family traditions!',
-      'Do you enjoy cooking? I love trying new recipes.',
     ];
 
     // Sample messages from the current user
@@ -237,48 +319,73 @@ class MessagingProvider with ChangeNotifier {
       'I love hiking too! I try to get out every weekend.',
       'I attend Grace Community Church. It\'s a big part of my life.',
       'Sunday dinners are a must in my family. We all get together.',
-      'I\'m actually a pretty good cook! Italian food is my specialty.',
     ];
 
-    // Generate message history
-    final int messageCount =
-        3 + (match.id.hashCode % 5); // Between 3-7 messages
+    // For the last message, we'll use the preview that's displayed in the matches list
+    final String lastMessage =
+        matchPreview ?? 'Do you enjoy cooking? I love trying new recipes.';
+
+    // Calculate how many message pairs we need
+    final int historyMessageCount = math.max(0, messageCount - 1);
+    final int messagePairs = math.min(
+      (historyMessageCount / 2).ceil(),
+      math.min(initialMessages.length, currentUserMessages.length),
+    );
+
+    // Generate conversation history
     final DateTime baseTime = DateTime.now().subtract(const Duration(days: 1));
 
-    for (int i = 0; i < messageCount; i++) {
-      final bool isFromCurrentUser = i % 2 == 1; // Alternate messages
-      final String senderId = isFromCurrentUser ? currentUserId : otherUserId;
-      final String receiverId = isFromCurrentUser ? otherUserId : currentUserId;
-      final String text =
-          isFromCurrentUser
-              ? currentUserMessages[i % currentUserMessages.length]
-              : otherUserMessages[i % otherUserMessages.length];
+    // First message is always from the other user
+    for (int i = 0; i < messagePairs; i++) {
+      // Other user's message
+      if (i < messagePairs) {
+        final String text = initialMessages[i % initialMessages.length];
+        final message = MessageModel(
+          id: uuid.v4(),
+          matchId: matchId,
+          senderId: otherUserId,
+          receiverId: currentUserId,
+          text: text,
+          timestamp: baseTime.add(Duration(minutes: i * 30)),
+          isRead: true,
+        );
+        messages.add(message);
+      }
 
-      final message = MessageModel(
-        id: uuid.v4(),
-        matchId: matchId,
-        senderId: senderId,
-        receiverId: receiverId,
-        text: text,
-        timestamp: baseTime.add(Duration(minutes: i * 15)),
-        isRead:
-            true, // All messages read except the last one if from other user
-      );
-
-      messages.add(message);
+      // Current user's message
+      if (i < messagePairs) {
+        final String text = currentUserMessages[i % currentUserMessages.length];
+        final message = MessageModel(
+          id: uuid.v4(),
+          matchId: matchId,
+          senderId: currentUserId,
+          receiverId: otherUserId,
+          text: text,
+          timestamp: baseTime.add(Duration(minutes: i * 30 + 15)),
+          isRead: true,
+        );
+        messages.add(message);
+      }
     }
 
-    // If this match has unread messages, add an unread message
-    if (match.hasUnreadMessages) {
+    // Now add the final message that matches the preview in the matches list
+    if (messageCount > 0) {
+      // If it's the user's turn, the last message was from the other person
+      final String lastSenderId =
+          isCurrentUserTurn ? otherUserId : currentUserId;
+      final String lastReceiverId =
+          isCurrentUserTurn ? currentUserId : otherUserId;
+
       final message = MessageModel(
         id: uuid.v4(),
         matchId: matchId,
-        senderId: otherUserId,
-        receiverId: currentUserId,
-        text:
-            'Just wondering if you\'re free this weekend? Would love to meet for coffee!',
-        timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-        isRead: false,
+        senderId: lastSenderId,
+        receiverId: lastReceiverId,
+        text: lastMessage,
+        timestamp:
+            match.lastMessageAt ??
+            DateTime.now().subtract(const Duration(hours: 2)),
+        isRead: !hasUnreadMessages,
       );
 
       messages.add(message);
@@ -295,35 +402,72 @@ class MessagingProvider with ChangeNotifier {
 
       if (_devMode) {
         // Simulate sending a message in development mode
-        final String mockUserId = 'current-user-id';
-        final match = _matches.firstWhere((m) => m.id == _currentMatchId);
-        final String receiverId =
-            match.user1Id == mockUserId ? match.user2Id : match.user1Id;
+        MatchModel? match;
+        int matchIndex = -1;
+        String currentUserId = '';
+
+        try {
+          matchIndex = _matches.indexWhere((m) => m.id == _currentMatchId);
+          if (matchIndex >= 0) {
+            match = _matches[matchIndex];
+            // Determine the current user ID from the match - always use user1Id in dev mode
+            currentUserId = match.user1Id;
+          } else {
+            // If match not found, must provide a fallback ID
+            currentUserId = 'dev-user-id';
+          }
+        } catch (e) {
+          print('Error finding match: $e');
+          currentUserId = 'dev-user-id';
+        }
+
+        // Determine the receiver ID
+        String receiverId;
+        if (match != null) {
+          receiverId =
+              match.user2Id; // In dev mode, current user is always user1
+        } else {
+          // Create a temporary receiverId if no match found
+          receiverId = 'temp-receiver-$_currentMatchId';
+        }
 
         final Uuid uuid = Uuid();
-        final newMessage = MessageModel(
-          id: uuid.v4(),
-          matchId: _currentMatchId!,
-          senderId: mockUserId,
-          receiverId: receiverId,
-          text: text,
-          timestamp: DateTime.now(),
-          isRead: false,
-        );
+        final DateTime messageTime = DateTime.now();
 
-        _currentConversation = [..._currentConversation, newMessage];
-
-        // Update match preview
-        final matchIndex = _matches.indexWhere((m) => m.id == _currentMatchId);
-        if (matchIndex >= 0) {
-          final updatedMatch = _matches[matchIndex].copyWith(
-            lastMessagePreview:
-                text.length > 50 ? '${text.substring(0, 47)}...' : text,
-            lastMessageAt: DateTime.now(),
-            messageCount: _matches[matchIndex].messageCount + 1,
+        // Create the new message
+        try {
+          final newMessage = MessageModel(
+            id: uuid.v4(),
+            matchId: _currentMatchId!,
+            senderId: currentUserId,
+            receiverId: receiverId,
+            text: text,
+            timestamp: messageTime,
+            isRead: false,
           );
 
-          _matches[matchIndex] = updatedMatch;
+          // Add the new message to the conversation
+          _currentConversation = [..._currentConversation, newMessage];
+
+          // Update match preview and metadata
+          if (matchIndex >= 0 && matchIndex < _matches.length) {
+            // Get the existing match count
+            int existingCount = _matches[matchIndex].messageCount;
+
+            final updatedMatch = _matches[matchIndex].copyWith(
+              lastMessagePreview:
+                  text.length > 50 ? '${text.substring(0, 47)}...' : text,
+              lastMessageAt: messageTime,
+              messageCount: existingCount + 1,
+              isCurrentUserTurn:
+                  false, // After sending a message, it's the other person's turn
+              hasUnreadMessages: false, // Our own message can't be unread
+            );
+
+            _matches[matchIndex] = updatedMatch;
+          }
+        } catch (e) {
+          throw Exception('Error creating message: $e');
         }
 
         notifyListeners();
@@ -358,9 +502,10 @@ class MessagingProvider with ChangeNotifier {
   UserModel? getMatchedUser(MatchModel match) {
     if (_devMode) {
       // In development mode, look up the matched user directly
-      final mockUserId = 'current-user-id';
+      // We should use the user1Id as the current user ID (not a hardcoded ID)
+      final String currentUserId = match.user1Id;
       final String otherUserId =
-          match.user1Id == mockUserId ? match.user2Id : match.user1Id;
+          match.user1Id == currentUserId ? match.user2Id : match.user1Id;
       return _matchedUsers[otherUserId];
     } else {
       if (_firebaseService.currentUser == null) return null;

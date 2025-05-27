@@ -1,10 +1,6 @@
 import 'dart:io';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'services/firebase_service.dart';
-import 'models/user_model.dart';
 
 class FirebaseTester extends StatefulWidget {
   const FirebaseTester({super.key});

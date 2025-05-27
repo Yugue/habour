@@ -265,6 +265,7 @@ class FirebaseService {
             text.length > 50 ? '${text.substring(0, 47)}...' : text,
         'hasUnreadMessages': true,
         'messageCount': FieldValue.increment(1),
+        'isCurrentUserTurn': false,
       });
     } catch (e) {
       rethrow;
@@ -310,6 +311,7 @@ class FirebaseService {
       // Update the match to mark messages as read
       await _matchesCollection.doc(matchId).update({
         'hasUnreadMessages': false,
+        'isCurrentUserTurn': true,
       });
     } catch (e) {
       rethrow;

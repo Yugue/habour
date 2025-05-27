@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 import 'package:harbour/core/theme/app_theme.dart';
 import 'package:harbour/features/auth/providers/auth_provider.dart' as app_auth;
 import 'package:harbour/features/profile/providers/profile_provider.dart';
-import 'package:harbour/models/user_model.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});

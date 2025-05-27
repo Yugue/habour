@@ -20,15 +20,41 @@ class _MatchesScreenState extends State<MatchesScreen>
   @override
   bool get wantKeepAlive => true;
 
+  // Track last reload time to prevent too frequent reloads
+  DateTime _lastReloadTime = DateTime.now().subtract(
+    const Duration(minutes: 5),
+  );
+  bool _isFirstLoad = true;
+
   @override
   void initState() {
     super.initState();
+    // Initial load only in initState
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadMatches();
+      _loadMatches(isInitialLoad: true);
     });
   }
 
-  Future<void> _loadMatches() async {
+  // Only reload when the tab is selected or page is revisited
+  void reloadIfNeeded() {
+    // Only reload if it's been at least 5 seconds since the last reload
+    final now = DateTime.now();
+    if (now.difference(_lastReloadTime).inSeconds >= 5) {
+      _loadMatches();
+    }
+  }
+
+  Future<void> _loadMatches({bool isInitialLoad = false}) async {
+    // Prevent duplicate loads
+    if (!isInitialLoad) {
+      final now = DateTime.now();
+      if (now.difference(_lastReloadTime).inSeconds < 5) {
+        return;
+      }
+    }
+
+    _lastReloadTime = DateTime.now();
+
     final authProvider = Provider.of<app_auth.AuthProvider>(
       context,
       listen: false,
@@ -38,17 +64,32 @@ class _MatchesScreenState extends State<MatchesScreen>
       listen: false,
     );
 
-    if (authProvider.user != null) {
-      await messagingProvider.loadMatches(authProvider.user!.uid);
-    } else {
-      // In development mode, we can load matches with a fake user ID
-      await messagingProvider.loadMatches('dev-user-id');
+    final String userId = authProvider.user?.uid ?? 'dev-user-id';
+    await messagingProvider.loadMatches(userId);
+
+    // Mark first load as complete
+    if (_isFirstLoad) {
+      setState(() {
+        _isFirstLoad = false;
+      });
     }
+  }
+
+  // Add a simple manual refresh action for the app bar
+  void _refreshMatches() {
+    _loadMatches(isInitialLoad: true); // Force refresh
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
+
+    // Request a reload when the screen is built (but with throttling)
+    if (!_isFirstLoad) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        reloadIfNeeded();
+      });
+    }
 
     final messagingProvider = Provider.of<MessagingProvider>(context);
     final authProvider = Provider.of<app_auth.AuthProvider>(context);
@@ -57,7 +98,16 @@ class _MatchesScreenState extends State<MatchesScreen>
     final String userId = authProvider.user?.uid ?? 'dev-user-id';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Matches')),
+      appBar: AppBar(
+        title: const Text('Matches'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, size: 20),
+            onPressed: _refreshMatches,
+            tooltip: 'Refresh matches',
+          ),
+        ],
+      ),
       body:
           messagingProvider.isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -122,33 +172,45 @@ class _MatchesScreenState extends State<MatchesScreen>
       itemCount: sortedMatches.length,
       separatorBuilder: (context, index) => const Divider(),
       itemBuilder: (context, index) {
-        final match = sortedMatches[index];
-        final matchedUser = messagingProvider.getMatchedUser(match);
-
-        if (matchedUser == null) {
-          return const SizedBox.shrink();
+        if (index < 0 || index >= sortedMatches.length) {
+          return const SizedBox.shrink(); // Protect against out-of-bounds
         }
 
-        return _buildMatchListItem(match, matchedUser, currentUserId);
+        final match = sortedMatches[index];
+        return _buildMatchItem(context, match, currentUserId);
       },
     );
   }
 
-  Widget _buildMatchListItem(
+  Widget _buildMatchItem(
+    BuildContext context,
     MatchModel match,
-    UserModel matchedUser,
     String currentUserId,
   ) {
-    final bool hasMessages = match.messageCount > 0;
-    final bool hasUnreadMessages = match.hasUnreadMessages;
-    final bool isNewMatch = !hasMessages && match.matchedAt != null;
+    // Determine if this is the current user's turn
+    final bool isCurrentUserTurn = match.isCurrentUserTurn;
+    final bool isCurrentUserReceiver = !isCurrentUserTurn;
+    final bool isYourTurn = isCurrentUserTurn;
 
-    // Determine if the current user is the receiver of the last message
-    final bool isCurrentUserReceiver =
-        hasMessages &&
-            match.lastMessageAt != null &&
-            (match.user1Id == currentUserId && match.user2LikedUser1) ||
-        (match.user2Id == currentUserId && match.user1LikedUser2);
+    // Find the matched user
+    final messagingProvider = Provider.of<MessagingProvider>(
+      context,
+      listen: false,
+    );
+    final UserModel? matchedUser = messagingProvider.getMatchedUser(match);
+
+    if (matchedUser == null) {
+      return const SizedBox.shrink(); // Skip if user not found
+    }
+
+    // Determine if there are messages in this conversation
+    final bool hasMessages =
+        match.messageCount > 0 && match.lastMessagePreview != null;
+    final bool hasUnreadMessages = match.hasUnreadMessages;
+    final bool isNewMatch =
+        match.messageCount == 0 &&
+        match.matchedAt != null &&
+        DateTime.now().difference(match.matchedAt!).inDays < 1;
 
     return ListTile(
       onTap: () {
@@ -161,64 +223,68 @@ class _MatchesScreenState extends State<MatchesScreen>
           },
         );
       },
-      leading: CircleAvatar(
-        radius: 28,
-        backgroundColor: AppTheme.secondaryBeige,
-        backgroundImage:
-            matchedUser.photoUrls.isNotEmpty
-                ? NetworkImage(matchedUser.photoUrls.first)
-                : null,
-        child:
-            matchedUser.photoUrls.isEmpty
-                ? const Icon(
-                  Icons.person,
-                  color: AppTheme.primaryBlue,
-                  size: 28,
-                )
-                : null,
+      leading: GestureDetector(
+        onTap: () {
+          Navigator.of(
+            context,
+          ).pushNamed(AppRoutes.viewProfile, arguments: matchedUser);
+        },
+        child: CircleAvatar(
+          radius: 28,
+          backgroundColor: AppTheme.secondaryBeige,
+          backgroundImage:
+              matchedUser.photoUrls.isNotEmpty
+                  ? NetworkImage(matchedUser.photoUrls.first)
+                  : null,
+          child:
+              matchedUser.photoUrls.isEmpty
+                  ? const Icon(
+                    Icons.person,
+                    color: AppTheme.primaryBlue,
+                    size: 36,
+                  )
+                  : null,
+        ),
       ),
       title: Row(
         children: [
           Expanded(
             child: Text(
               matchedUser.name,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight:
-                    hasUnreadMessages && isCurrentUserReceiver
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-              ),
+              style: Theme.of(context).textTheme.titleMedium,
               overflow: TextOverflow.ellipsis,
             ),
           ),
           if (match.lastMessageAt != null)
             Text(
               _formatMessageTime(match.lastMessageAt!),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color:
-                    hasUnreadMessages && isCurrentUserReceiver
-                        ? AppTheme.primaryBlue
-                        : AppTheme.textLight,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: AppTheme.textLight),
             ),
         ],
       ),
       subtitle:
           hasMessages
-              ? Text(
-                match.lastMessagePreview ?? '',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight:
-                      hasUnreadMessages && isCurrentUserReceiver
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                  color:
-                      hasUnreadMessages && isCurrentUserReceiver
-                          ? AppTheme.textDark
-                          : AppTheme.textMedium,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    match.lastMessagePreview ?? '',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight:
+                          hasUnreadMessages && isCurrentUserReceiver
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                      color:
+                          hasUnreadMessages && isCurrentUserReceiver
+                              ? AppTheme.textDark
+                              : AppTheme.textMedium,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               )
               : Text(
                 isNewMatch
@@ -230,7 +296,32 @@ class _MatchesScreenState extends State<MatchesScreen>
                 ),
               ),
       trailing:
-          hasUnreadMessages && isCurrentUserReceiver
+          isYourTurn
+              ? Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (hasUnreadMessages && isCurrentUserReceiver)
+                    Container(
+                      width: 12,
+                      height: 12,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppTheme.primaryBlue,
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Your turn',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              )
+              : hasUnreadMessages && isCurrentUserReceiver
               ? Container(
                 width: 12,
                 height: 12,

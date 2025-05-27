@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:harbour/core/theme/app_theme.dart';
-import 'package:harbour/features/auth/providers/auth_provider.dart' as app_auth;
+import 'package:harbour/core/constants/app_routes.dart';
 import 'package:harbour/features/messaging/providers/messaging_provider.dart';
 import 'package:harbour/models/message_model.dart';
 import 'package:harbour/models/user_model.dart';
@@ -21,6 +21,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
   late String _matchId;
   late String _currentUserId;
   late UserModel _matchedUser;
+  bool _initialized = false;
 
   @override
   void initState() {
@@ -31,6 +32,10 @@ class _ConversationScreenState extends State<ConversationScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
+    // If we already initialized, don't do it again
+    if (_initialized) return;
+
     final args =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
@@ -39,8 +44,21 @@ class _ConversationScreenState extends State<ConversationScreen> {
       _currentUserId = args['userId'] as String;
       _matchedUser = args['matchedUser'] as UserModel;
 
+      _initialized = true;
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _selectConversation();
+      });
+    } else {
+      // Handle missing arguments
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error loading conversation'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        Navigator.of(context).pop();
       });
     }
   }
@@ -77,7 +95,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
     );
     final messageText = _messageController.text.trim();
     _messageController.clear();
+    setState(() {
+      _isComposing = false;
+    });
 
+    // Try to send the message
     await messagingProvider.sendMessage(messageText);
 
     if (messagingProvider.error != null && mounted) {
@@ -88,14 +110,18 @@ class _ConversationScreenState extends State<ConversationScreen> {
         ),
       );
     } else {
-      // Scroll to bottom after sending a message
+      // Safely scroll to bottom after sending a message
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_scrollController.hasClients) {
-          _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
+        if (mounted && _scrollController.hasClients) {
+          try {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          } catch (e) {
+            print('Error scrolling to bottom after send: $e');
+          }
         }
       });
     }
@@ -103,6 +129,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
   @override
   void dispose() {
+    _messageController.removeListener(_onTextChanged);
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -115,37 +142,72 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: AppTheme.secondaryBeige,
-              backgroundImage:
-                  _matchedUser.photoUrls.isNotEmpty
-                      ? NetworkImage(_matchedUser.photoUrls.first)
-                      : null,
-              child:
-                  _matchedUser.photoUrls.isEmpty
-                      ? const Icon(
-                        Icons.person,
-                        color: AppTheme.primaryBlue,
-                        size: 16,
-                      )
-                      : null,
-            ),
-            const SizedBox(width: 8),
-            Text(_matchedUser.name),
-          ],
+        title: InkWell(
+          onTap: () {
+            Navigator.of(
+              context,
+            ).pushNamed(AppRoutes.viewProfile, arguments: _matchedUser);
+          },
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: AppTheme.secondaryBeige,
+                backgroundImage:
+                    _matchedUser.photoUrls.isNotEmpty
+                        ? NetworkImage(_matchedUser.photoUrls.first)
+                        : null,
+                child:
+                    _matchedUser.photoUrls.isEmpty
+                        ? const Icon(
+                          Icons.person,
+                          color: AppTheme.primaryBlue,
+                          size: 16,
+                        )
+                        : null,
+              ),
+              const SizedBox(width: 8),
+              Text(_matchedUser.name),
+            ],
+          ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            onPressed: () {
-              // View profile action
-              Navigator.of(
-                context,
-              ).pushNamed('/profile/view', arguments: _matchedUser);
-            },
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) => _handleConversationAction(value),
+            itemBuilder:
+                (context) => [
+                  const PopupMenuItem(
+                    value: 'hide',
+                    child: Row(
+                      children: [
+                        Icon(Icons.visibility_off, size: 18),
+                        SizedBox(width: 8),
+                        Text('Hide'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'unmatch',
+                    child: Row(
+                      children: [
+                        Icon(Icons.person_remove, size: 18),
+                        SizedBox(width: 8),
+                        Text('Unmatch'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'report',
+                    child: Row(
+                      children: [
+                        Icon(Icons.flag, size: 18),
+                        SizedBox(width: 8),
+                        Text('Report'),
+                      ],
+                    ),
+                  ),
+                ],
           ),
         ],
       ),
@@ -169,6 +231,10 @@ class _ConversationScreenState extends State<ConversationScreen> {
   }
 
   Widget _buildMessagesList(List<MessageModel> messages, String currentUserId) {
+    if (messages.isEmpty) {
+      return _buildEmptyConversation();
+    }
+
     // Sort messages by time (oldest first)
     final sortedMessages = List<MessageModel>.from(messages);
     sortedMessages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
@@ -200,10 +266,14 @@ class _ConversationScreenState extends State<ConversationScreen> {
       }
     });
 
-    // Scroll to bottom after messages load
+    // Safely scroll to bottom after messages load
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      if (mounted && _scrollController.hasClients) {
+        try {
+          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+        } catch (e) {
+          print('Error scrolling to bottom: $e');
+        }
       }
     });
 
@@ -263,21 +333,28 @@ class _ConversationScreenState extends State<ConversationScreen> {
         children: [
           // Avatar for other user
           if (!isCurrentUser && showAvatar)
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: AppTheme.secondaryBeige,
-              backgroundImage:
-                  _matchedUser.photoUrls.isNotEmpty
-                      ? NetworkImage(_matchedUser.photoUrls.first)
-                      : null,
-              child:
-                  _matchedUser.photoUrls.isEmpty
-                      ? const Icon(
-                        Icons.person,
-                        color: AppTheme.primaryBlue,
-                        size: 16,
-                      )
-                      : null,
+            GestureDetector(
+              onTap: () {
+                Navigator.of(
+                  context,
+                ).pushNamed(AppRoutes.viewProfile, arguments: _matchedUser);
+              },
+              child: CircleAvatar(
+                radius: 16,
+                backgroundColor: AppTheme.secondaryBeige,
+                backgroundImage:
+                    _matchedUser.photoUrls.isNotEmpty
+                        ? NetworkImage(_matchedUser.photoUrls.first)
+                        : null,
+                child:
+                    _matchedUser.photoUrls.isEmpty
+                        ? const Icon(
+                          Icons.person,
+                          color: AppTheme.primaryBlue,
+                          size: 16,
+                        )
+                        : null,
+              ),
             )
           else if (!isCurrentUser && !showAvatar)
             const SizedBox(width: 32), // Space for avatar alignment
@@ -345,21 +422,28 @@ class _ConversationScreenState extends State<ConversationScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircleAvatar(
-            radius: 48,
-            backgroundColor: AppTheme.secondaryBeige,
-            backgroundImage:
-                _matchedUser.photoUrls.isNotEmpty
-                    ? NetworkImage(_matchedUser.photoUrls.first)
-                    : null,
-            child:
-                _matchedUser.photoUrls.isEmpty
-                    ? const Icon(
-                      Icons.person,
-                      color: AppTheme.primaryBlue,
-                      size: 48,
-                    )
-                    : null,
+          GestureDetector(
+            onTap: () {
+              Navigator.of(
+                context,
+              ).pushNamed(AppRoutes.viewProfile, arguments: _matchedUser);
+            },
+            child: CircleAvatar(
+              radius: 48,
+              backgroundColor: AppTheme.secondaryBeige,
+              backgroundImage:
+                  _matchedUser.photoUrls.isNotEmpty
+                      ? NetworkImage(_matchedUser.photoUrls.first)
+                      : null,
+              child:
+                  _matchedUser.photoUrls.isEmpty
+                      ? const Icon(
+                        Icons.person,
+                        color: AppTheme.primaryBlue,
+                        size: 48,
+                      )
+                      : null,
+            ),
           ),
           const SizedBox(height: 16),
           Text(
@@ -435,6 +519,115 @@ class _ConversationScreenState extends State<ConversationScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Handle conversation actions (hide, unmatch, report)
+  void _handleConversationAction(String action) {
+    switch (action) {
+      case 'hide':
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Conversation with ${_matchedUser.name} hidden'),
+          ),
+        );
+        break;
+      case 'unmatch':
+        _showUnmatchDialog();
+        break;
+      case 'report':
+        _showReportDialog();
+        break;
+    }
+  }
+
+  // Show confirmation dialog for unmatching
+  void _showUnmatchDialog() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Unmatch'),
+            content: Text(
+              'Are you sure you want to unmatch with ${_matchedUser.name}? This action cannot be undone.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  // TODO: Implement unmatching logic
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Unmatched with ${_matchedUser.name}'),
+                    ),
+                  );
+                  // Return to matches screen after unmatching
+                  Navigator.of(context).pop();
+                },
+                child: const Text(
+                  'Unmatch',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
+          ),
+    );
+  }
+
+  // Show report dialog
+  void _showReportDialog() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Report'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Why are you reporting ${_matchedUser.name}?'),
+                const SizedBox(height: 16),
+                _buildReportOption('Inappropriate photos'),
+                _buildReportOption('Spam/Scammer'),
+                _buildReportOption('Offensive behavior'),
+                _buildReportOption('Fake profile'),
+                _buildReportOption('Other'),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  Widget _buildReportOption(String reason) {
+    return InkWell(
+      onTap: () {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Report submitted: $reason')));
+        // Return to matches screen after reporting
+        Navigator.of(context).pop();
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          children: [
+            const Icon(Icons.flag_outlined, size: 18),
+            const SizedBox(width: 12),
+            Text(reason),
+          ],
+        ),
       ),
     );
   }

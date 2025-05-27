@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:harbour/core/constants/app_routes.dart';
 import 'package:harbour/core/theme/app_theme.dart';
-import 'package:harbour/features/auth/providers/auth_provider.dart' as app_auth;
 import 'package:harbour/features/discovery/providers/discovery_provider.dart';
 import 'package:harbour/models/user_model.dart';
 

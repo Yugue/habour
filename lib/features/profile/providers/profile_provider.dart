@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
 import '../../../models/user_model.dart';
 import '../../../services/firebase_service.dart';
 
