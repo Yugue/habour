@@ -172,12 +172,12 @@ class _ProfileScreenState extends State<ProfileScreen>
 
     return CircleAvatar(
       radius: 64,
-      backgroundColor: AppTheme.secondaryBeige,
+      backgroundColor: AppTheme.secondaryWarmBeige,
       backgroundImage:
           hasProfileImage ? NetworkImage(userProfile.photoUrls.first) : null,
       child:
           !hasProfileImage
-              ? const Icon(Icons.person, size: 64, color: AppTheme.primaryBlue)
+              ? const Icon(Icons.person, size: 64, color: AppTheme.primaryDeepBlue)
               : null,
     );
   }
@@ -191,7 +191,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           Text(
             title,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: AppTheme.primaryBlue,
+              color: AppTheme.primaryDeepBlue,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -359,7 +359,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               label,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: AppTheme.textMedium,
+                color: AppTheme.textSecondary,
               ),
             ),
           ),
@@ -381,7 +381,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               message,
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: AppTheme.textLight),
+              ).textTheme.bodyMedium?.copyWith(color: AppTheme.textTertiary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),

@@ -152,7 +152,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
             children: [
               CircleAvatar(
                 radius: 16,
-                backgroundColor: AppTheme.secondaryBeige,
+                backgroundColor: AppTheme.secondaryWarmBeige,
                 backgroundImage:
                     _matchedUser.photoUrls.isNotEmpty
                         ? NetworkImage(_matchedUser.photoUrls.first)
@@ -161,7 +161,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                     _matchedUser.photoUrls.isEmpty
                         ? const Icon(
                           Icons.person,
-                          color: AppTheme.primaryBlue,
+                          color: AppTheme.primaryDeepBlue,
                           size: 16,
                         )
                         : null,
@@ -304,14 +304,14 @@ class _ConversationScreenState extends State<ConversationScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         decoration: BoxDecoration(
-          color: AppTheme.secondaryBeige,
+          color: AppTheme.secondaryWarmBeige,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Text(
           dateText,
           style: Theme.of(
             context,
-          ).textTheme.bodySmall?.copyWith(color: AppTheme.textMedium),
+          ).textTheme.bodySmall?.copyWith(color: AppTheme.textSecondary),
         ),
       ),
     );
@@ -341,7 +341,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
               },
               child: CircleAvatar(
                 radius: 16,
-                backgroundColor: AppTheme.secondaryBeige,
+                backgroundColor: AppTheme.secondaryWarmBeige,
                 backgroundImage:
                     _matchedUser.photoUrls.isNotEmpty
                         ? NetworkImage(_matchedUser.photoUrls.first)
@@ -350,7 +350,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                     _matchedUser.photoUrls.isEmpty
                         ? const Icon(
                           Icons.person,
-                          color: AppTheme.primaryBlue,
+                          color: AppTheme.primaryDeepBlue,
                           size: 16,
                         )
                         : null,
@@ -369,7 +369,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
-                color: isCurrentUser ? AppTheme.primaryBlue : Colors.white,
+                color: isCurrentUser ? AppTheme.primaryDeepBlue : Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
@@ -385,7 +385,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                   Text(
                     message.text,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: isCurrentUser ? Colors.white : AppTheme.textDark,
+                      color: isCurrentUser ? Colors.white : AppTheme.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -395,7 +395,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                       color:
                           isCurrentUser
                               ? Colors.white.withOpacity(0.7)
-                              : AppTheme.textLight,
+                              : AppTheme.textTertiary,
                     ),
                   ),
                 ],
@@ -410,7 +410,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
             Icon(
               message.isRead ? Icons.done_all : Icons.done,
               size: 16,
-              color: message.isRead ? AppTheme.accentOlive : AppTheme.textLight,
+              color: message.isRead ? AppTheme.accentOlive : AppTheme.textTertiary,
             ),
         ],
       ),
@@ -430,7 +430,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
             },
             child: CircleAvatar(
               radius: 48,
-              backgroundColor: AppTheme.secondaryBeige,
+              backgroundColor: AppTheme.secondaryWarmBeige,
               backgroundImage:
                   _matchedUser.photoUrls.isNotEmpty
                       ? NetworkImage(_matchedUser.photoUrls.first)
@@ -439,7 +439,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                   _matchedUser.photoUrls.isEmpty
                       ? const Icon(
                         Icons.person,
-                        color: AppTheme.primaryBlue,
+                        color: AppTheme.primaryDeepBlue,
                         size: 48,
                       )
                       : null,
@@ -456,7 +456,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
             'Start a conversation to get to know each other better.',
             style: Theme.of(
               context,
-            ).textTheme.bodyMedium?.copyWith(color: AppTheme.textMedium),
+            ).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),
             textAlign: TextAlign.center,
           ),
         ],
@@ -485,7 +485,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
                 hintText: 'Type a message...',
-                hintStyle: TextStyle(color: AppTheme.textLight),
+                hintStyle: TextStyle(color: AppTheme.textTertiary),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                   borderSide: BorderSide.none,
@@ -495,7 +495,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                   vertical: 10,
                 ),
                 filled: true,
-                fillColor: AppTheme.background,
+                fillColor: AppTheme.backgroundLight,
               ),
               maxLines: null,
               textInputAction: TextInputAction.send,
@@ -509,7 +509,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: _isComposing ? AppTheme.primaryBlue : AppTheme.textLight,
+              color: _isComposing ? AppTheme.primaryDeepBlue : AppTheme.textTertiary,
               shape: BoxShape.circle,
             ),
             child: IconButton(

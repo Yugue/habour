@@ -120,12 +120,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.backgroundLight,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.primaryBlue),
+          icon: const Icon(Icons.arrow_back, color: AppTheme.primaryDeepBlue),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -142,9 +142,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   Text(
                     'Create Account',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: AppTheme.primaryBlue,
-                      fontWeight: FontWeight.bold,
-                    ),
+                          color: AppTheme.primaryDeepBlue,
+                          fontWeight: FontWeight.bold,
+                        ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
@@ -152,7 +152,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     'Find your perfect match',
                     style: Theme.of(
                       context,
-                    ).textTheme.bodyLarge?.copyWith(color: AppTheme.textMedium),
+                    )
+                        .textTheme
+                        .bodyLarge
+                        ?.copyWith(color: AppTheme.textSecondary),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
@@ -277,17 +280,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   // Register button
                   ElevatedButton(
                     onPressed: _isLoading ? null : _register,
-                    child:
-                        _isLoading
-                            ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                            : const Text('Sign Up'),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text('Sign Up'),
                   ),
                   const SizedBox(height: 24),
                   // Login link

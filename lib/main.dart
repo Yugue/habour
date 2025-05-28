@@ -39,14 +39,12 @@ void main() async {
         // Initialize Firebase App Check - This is crucial for authentication to work properly
         await FirebaseAppCheck.instance.activate(
           // Use debug providers only in debug mode
-          androidProvider:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? AndroidProvider.playIntegrity
-                  : AndroidProvider.debug,
-          appleProvider:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? AppleProvider.deviceCheck
-                  : AppleProvider.debug,
+          androidProvider: const bool.fromEnvironment('dart.vm.product')
+              ? AndroidProvider.playIntegrity
+              : AndroidProvider.debug,
+          appleProvider: const bool.fromEnvironment('dart.vm.product')
+              ? AppleProvider.deviceCheck
+              : AppleProvider.debug,
         );
 
         if (AppConfig.enableLogging) {
@@ -90,28 +88,24 @@ class MyApp extends StatelessWidget {
           initialData: null,
         ),
         ChangeNotifierProvider<app_auth.AuthProvider>(
-          create:
-              (context) => app_auth.AuthProvider(
-                firebaseService: context.read<FirebaseService>(),
-              ),
+          create: (context) => app_auth.AuthProvider(
+            firebaseService: context.read<FirebaseService>(),
+          ),
         ),
         ChangeNotifierProvider<ProfileProvider>(
-          create:
-              (context) => ProfileProvider(
-                firebaseService: context.read<FirebaseService>(),
-              ),
+          create: (context) => ProfileProvider(
+            firebaseService: context.read<FirebaseService>(),
+          ),
         ),
         ChangeNotifierProvider<DiscoveryProvider>(
-          create:
-              (context) => DiscoveryProvider(
-                firebaseService: context.read<FirebaseService>(),
-              ),
+          create: (context) => DiscoveryProvider(
+            firebaseService: context.read<FirebaseService>(),
+          ),
         ),
         ChangeNotifierProvider<MessagingProvider>(
-          create:
-              (context) => MessagingProvider(
-                firebaseService: context.read<FirebaseService>(),
-              ),
+          create: (context) => MessagingProvider(
+            firebaseService: context.read<FirebaseService>(),
+          ),
         ),
       ],
       child: MaterialApp(
@@ -121,19 +115,17 @@ class MyApp extends StatelessWidget {
         initialRoute: AppRoutes.splash,
         routes: {
           // Splash route - decide where to go based on auth state
-          AppRoutes.splash:
-              (context) =>
-                  firebaseInitialized
-                      ? Consumer<User?>(
-                        builder: (context, user, _) {
-                          if (user == null) {
-                            return const OnboardingScreen();
-                          } else {
-                            return const AppScaffold();
-                          }
-                        },
-                      )
-                      : const OnboardingScreen(), // Always start with onboarding if Firebase is not initialized
+          AppRoutes.splash: (context) => firebaseInitialized
+              ? Consumer<User?>(
+                  builder: (context, user, _) {
+                    if (user == null) {
+                      return const OnboardingScreen();
+                    } else {
+                      return const AppScaffold();
+                    }
+                  },
+                )
+              : const OnboardingScreen(), // Always start with onboarding if Firebase is not initialized
           // Other routes - these will be directly navigated to
           AppRoutes.onboarding: (context) => const OnboardingScreen(),
           AppRoutes.login: (context) => const LoginScreen(),
@@ -142,8 +134,8 @@ class MyApp extends StatelessWidget {
           AppRoutes.editProfile: (context) => const EditProfileScreen(),
 
           // Main app routes - directly accessible after authentication
-          AppRoutes.discovery:
-              (context) => const AppScaffold(initialTabIndex: 0),
+          AppRoutes.discovery: (context) =>
+              const AppScaffold(initialTabIndex: 0),
           AppRoutes.matches: (context) => const AppScaffold(initialTabIndex: 1),
           AppRoutes.conversation: (context) => const ConversationScreen(),
           AppRoutes.viewProfile: (context) => const ViewProfileScreen(),
@@ -195,8 +187,8 @@ class _AppScaffoldState extends State<AppScaffold> {
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: AppTheme.primaryBlue,
-        unselectedItemColor: AppTheme.textLight,
+        selectedItemColor: AppTheme.primaryDeepBlue,
+        unselectedItemColor: AppTheme.textTertiary,
         onTap: _onItemTapped,
       ),
     );

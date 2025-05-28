@@ -28,7 +28,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.primaryBlue,
+      backgroundColor: AppTheme.primaryDeepBlue,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -48,7 +48,7 @@ class _SplashScreenState extends State<SplashScreen> {
               'Find your anchor',
               style: Theme.of(
                 context,
-              ).textTheme.bodyLarge?.copyWith(color: AppTheme.secondaryBeige),
+              ).textTheme.bodyLarge?.copyWith(color: AppTheme.secondaryWarmBeige),
             ),
             const SizedBox(height: 48),
             const CircularProgressIndicator(

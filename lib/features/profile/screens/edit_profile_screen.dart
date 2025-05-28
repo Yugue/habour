@@ -120,7 +120,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(primary: AppTheme.primaryBlue),
+            colorScheme: const ColorScheme.light(primary: AppTheme.primaryDeepBlue),
           ),
           child: child!,
         );
@@ -269,7 +269,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 children: [
                                   CircleAvatar(
                                     radius: 64,
-                                    backgroundColor: AppTheme.secondaryBeige,
+                                    backgroundColor: AppTheme.secondaryWarmBeige,
                                     backgroundImage:
                                         userProfile.photoUrls.isNotEmpty
                                             ? NetworkImage(
@@ -281,13 +281,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                             ? const Icon(
                                               Icons.person,
                                               size: 64,
-                                              color: AppTheme.primaryBlue,
+                                              color: AppTheme.primaryDeepBlue,
                                             )
                                             : null,
                                   ),
                                   CircleAvatar(
                                     radius: 18,
-                                    backgroundColor: AppTheme.primaryBlue,
+                                    backgroundColor: AppTheme.primaryDeepBlue,
                                     child: const Icon(
                                       Icons.camera_alt,
                                       size: 18,
@@ -301,7 +301,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             Text(
                               'Tap to change photo',
                               style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(color: AppTheme.textMedium),
+                                  ?.copyWith(color: AppTheme.textSecondary),
                             ),
                           ],
                         ),
@@ -534,7 +534,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           Text(
             title,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: AppTheme.primaryBlue,
+              color: AppTheme.primaryDeepBlue,
               fontWeight: FontWeight.bold,
             ),
           ),

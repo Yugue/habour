@@ -108,10 +108,9 @@ class _MatchesScreenState extends State<MatchesScreen>
           ),
         ],
       ),
-      body:
-          messagingProvider.isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _buildMatchesList(messagingProvider, userId),
+      body: messagingProvider.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _buildMatchesList(messagingProvider, userId),
     );
   }
 
@@ -207,8 +206,7 @@ class _MatchesScreenState extends State<MatchesScreen>
     final bool hasMessages =
         match.messageCount > 0 && match.lastMessagePreview != null;
     final bool hasUnreadMessages = match.hasUnreadMessages;
-    final bool isNewMatch =
-        match.messageCount == 0 &&
+    final bool isNewMatch = match.messageCount == 0 &&
         match.matchedAt != null &&
         DateTime.now().difference(match.matchedAt!).inDays < 1;
 
@@ -231,19 +229,17 @@ class _MatchesScreenState extends State<MatchesScreen>
         },
         child: CircleAvatar(
           radius: 28,
-          backgroundColor: AppTheme.secondaryBeige,
-          backgroundImage:
-              matchedUser.photoUrls.isNotEmpty
-                  ? NetworkImage(matchedUser.photoUrls.first)
-                  : null,
-          child:
-              matchedUser.photoUrls.isEmpty
-                  ? const Icon(
-                    Icons.person,
-                    color: AppTheme.primaryBlue,
-                    size: 36,
-                  )
-                  : null,
+          backgroundColor: AppTheme.secondaryWarmBeige,
+          backgroundImage: matchedUser.photoUrls.isNotEmpty
+              ? NetworkImage(matchedUser.photoUrls.first)
+              : null,
+          child: matchedUser.photoUrls.isEmpty
+              ? const Icon(
+                  Icons.person,
+                  color: AppTheme.primaryDeepBlue,
+                  size: 36,
+                )
+              : null,
         ),
       ),
       title: Row(
@@ -260,76 +256,72 @@ class _MatchesScreenState extends State<MatchesScreen>
               _formatMessageTime(match.lastMessageAt!),
               style: Theme.of(
                 context,
-              ).textTheme.bodySmall?.copyWith(color: AppTheme.textLight),
+              ).textTheme.bodySmall?.copyWith(color: AppTheme.textTertiary),
             ),
         ],
       ),
-      subtitle:
-          hasMessages
-              ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    match.lastMessagePreview ?? '',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight:
-                          hasUnreadMessages && isCurrentUserReceiver
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                      color:
-                          hasUnreadMessages && isCurrentUserReceiver
-                              ? AppTheme.textDark
-                              : AppTheme.textMedium,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              )
-              : Text(
-                isNewMatch
-                    ? 'New match! Say hello!'
-                    : 'You matched with ${matchedUser.name}',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.primaryBlue,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-      trailing:
-          isYourTurn
-              ? Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (hasUnreadMessages && isCurrentUserReceiver)
-                    Container(
-                      width: 12,
-                      height: 12,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppTheme.primaryBlue,
+      subtitle: hasMessages
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  match.lastMessagePreview ?? '',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: hasUnreadMessages && isCurrentUserReceiver
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: hasUnreadMessages && isCurrentUserReceiver
+                            ? AppTheme.textPrimary
+                            : AppTheme.textSecondary,
                       ),
-                    ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Your turn',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            )
+          : Text(
+              isNewMatch
+                  ? 'New match! Say hello!'
+                  : 'You matched with ${matchedUser.name}',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppTheme.primaryDeepBlue,
+                    fontStyle: FontStyle.italic,
+                  ),
+            ),
+      trailing: isYourTurn
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (hasUnreadMessages && isCurrentUserReceiver)
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppTheme.primaryDeepBlue,
                     ),
                   ),
-                ],
-              )
-              : hasUnreadMessages && isCurrentUserReceiver
-              ? Container(
-                width: 12,
-                height: 12,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppTheme.primaryBlue,
+                const SizedBox(height: 8),
+                Text(
+                  'Your turn',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
-              )
+              ],
+            )
+          : hasUnreadMessages && isCurrentUserReceiver
+              ? Container(
+                  width: 12,
+                  height: 12,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppTheme.primaryDeepBlue,
+                  ),
+                )
               : null,
     );
   }
@@ -361,7 +353,7 @@ class _MatchesScreenState extends State<MatchesScreen>
             const Icon(
               Icons.people_outline,
               size: 80,
-              color: AppTheme.textLight,
+              color: AppTheme.textTertiary,
             ),
             const SizedBox(height: 16),
             Text(
@@ -374,7 +366,7 @@ class _MatchesScreenState extends State<MatchesScreen>
               'When you connect with someone, they\'ll appear here. Start discovering potential matches!',
               style: Theme.of(
                 context,
-              ).textTheme.bodyLarge?.copyWith(color: AppTheme.textMedium),
+              ).textTheme.bodyLarge?.copyWith(color: AppTheme.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),

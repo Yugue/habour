@@ -89,12 +89,12 @@ class ViewProfileScreen extends StatelessWidget {
 
     return CircleAvatar(
       radius: 64,
-      backgroundColor: AppTheme.secondaryBeige,
+      backgroundColor: AppTheme.secondaryWarmBeige,
       backgroundImage:
           hasProfileImage ? NetworkImage(userProfile.photoUrls.first) : null,
       child:
           !hasProfileImage
-              ? const Icon(Icons.person, size: 64, color: AppTheme.primaryBlue)
+              ? const Icon(Icons.person, size: 64, color: AppTheme.primaryDeepBlue)
               : null,
     );
   }
@@ -108,7 +108,7 @@ class ViewProfileScreen extends StatelessWidget {
           Text(
             title,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: AppTheme.primaryBlue,
+              color: AppTheme.primaryDeepBlue,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -246,7 +246,7 @@ class ViewProfileScreen extends StatelessWidget {
               label,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: AppTheme.textMedium,
+                color: AppTheme.textSecondary,
               ),
             ),
           ),

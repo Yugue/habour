@@ -61,7 +61,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.backgroundLight,
       body: SafeArea(
         child: Column(
           children: [
@@ -95,7 +95,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     child: Text(
                       'Skip',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppTheme.textMedium,
+                        color: AppTheme.textSecondary,
                       ),
                     ),
                   ),
@@ -128,12 +128,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(page.icon, size: 100, color: AppTheme.primaryBlue),
+            Icon(page.icon, size: 100, color: AppTheme.primaryDeepBlue),
             const SizedBox(height: 40),
             Text(
               page.title,
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: AppTheme.primaryBlue,
+                color: AppTheme.primaryDeepBlue,
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
@@ -168,8 +168,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       decoration: BoxDecoration(
         color:
             isActive
-                ? AppTheme.primaryBlue
-                : AppTheme.textLight.withOpacity(0.4),
+                ? AppTheme.primaryDeepBlue
+                : AppTheme.textTertiary.withOpacity(0.4),
         borderRadius: BorderRadius.circular(4),
       ),
     );

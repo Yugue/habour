@@ -99,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.backgroundLight,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -114,15 +114,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Icon(
                     Icons.anchor,
                     size: 80,
-                    color: AppTheme.primaryBlue,
+                    color: AppTheme.primaryDeepBlue,
                   ),
                   const SizedBox(height: 24),
                   Text(
                     'Welcome Back',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: AppTheme.primaryBlue,
-                      fontWeight: FontWeight.bold,
-                    ),
+                          color: AppTheme.primaryDeepBlue,
+                          fontWeight: FontWeight.bold,
+                        ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
@@ -130,7 +130,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     'Sign in to continue',
                     style: Theme.of(
                       context,
-                    ).textTheme.bodyLarge?.copyWith(color: AppTheme.textMedium),
+                    )
+                        .textTheme
+                        .bodyLarge
+                        ?.copyWith(color: AppTheme.textSecondary),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 48),
@@ -195,8 +198,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Text(
                         'Forgot Password?',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.primaryBlue,
-                        ),
+                              color: AppTheme.primaryDeepBlue,
+                            ),
                       ),
                     ),
                   ),
@@ -204,17 +207,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Login button
                   ElevatedButton(
                     onPressed: _isLoading ? null : _login,
-                    child:
-                        _isLoading
-                            ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                            : const Text('Sign In'),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text('Sign In'),
                   ),
                   const SizedBox(height: 24),
                   // Register link

@@ -60,10 +60,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
           ),
         ],
       ),
-      body:
-          discoveryProvider.isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _buildDiscoveryContent(discoveryProvider),
+      body: discoveryProvider.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _buildDiscoveryContent(discoveryProvider),
     );
   }
 
@@ -164,24 +163,22 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
           height: 400,
           width: double.infinity,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: AppTheme.secondaryBeige,
-            image:
-                profile.photoUrls.isNotEmpty
-                    ? DecorationImage(
-                      image: NetworkImage(profile.photoUrls.first),
-                      fit: BoxFit.cover,
-                    )
-                    : null,
-          ),
-          child:
-              profile.photoUrls.isEmpty
-                  ? const Icon(
-                    Icons.person,
-                    size: 120,
-                    color: AppTheme.primaryBlue,
+            borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+            color: AppTheme.secondaryWarmBeige,
+            image: profile.photoUrls.isNotEmpty
+                ? DecorationImage(
+                    image: NetworkImage(profile.photoUrls.first),
+                    fit: BoxFit.cover,
                   )
-                  : null,
+                : null,
+          ),
+          child: profile.photoUrls.isEmpty
+              ? const Icon(
+                  Icons.person,
+                  size: 120,
+                  color: AppTheme.primaryDeepBlue,
+                )
+              : null,
         ),
 
         // Gradient overlay and profile info
@@ -192,9 +189,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(12),
-                bottomRight: Radius.circular(12),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(AppTheme.radiusLarge),
+                bottomRight: Radius.circular(AppTheme.radiusLarge),
               ),
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
@@ -208,9 +205,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
                 Text(
                   '${profile.name}, ${profile.age}',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: 4),
                 if (profile.hometown != null)
@@ -246,9 +243,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
             Text(
               prompt,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: AppTheme.primaryBlue,
-              ),
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primaryDeepBlue,
+                  ),
             ),
             const SizedBox(height: 8),
             Text(response, style: Theme.of(context).textTheme.bodyMedium),
@@ -329,9 +326,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
             child: Text(
               label,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textMedium,
-              ),
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textSecondary,
+                  ),
             ),
           ),
           Expanded(
@@ -351,9 +348,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
           Text(
             title,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: AppTheme.primaryBlue,
-              fontWeight: FontWeight.bold,
-            ),
+                  color: AppTheme.primaryDeepBlue,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const Divider(),
         ],
@@ -376,7 +373,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
               shape: const CircleBorder(),
               padding: const EdgeInsets.all(16),
               backgroundColor: Colors.white,
-              foregroundColor: AppTheme.textLight,
+              foregroundColor: AppTheme.textTertiary,
               elevation: 4,
             ),
             child: const Icon(Icons.close, size: 32),
@@ -390,7 +387,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
             style: ElevatedButton.styleFrom(
               shape: const CircleBorder(),
               padding: const EdgeInsets.all(20),
-              backgroundColor: AppTheme.primaryBlue,
+              backgroundColor: AppTheme.primaryDeepBlue,
               foregroundColor: Colors.white,
               elevation: 4,
             ),
@@ -408,7 +405,8 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.search_off, size: 80, color: AppTheme.textLight),
+            const Icon(Icons.search_off,
+                size: 80, color: AppTheme.textTertiary),
             const SizedBox(height: 16),
             Text(
               'No more profiles',
@@ -420,7 +418,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
               'We couldn\'t find any more profiles matching your preferences. Try adjusting your filters or check back later.',
               style: Theme.of(
                 context,
-              ).textTheme.bodyLarge?.copyWith(color: AppTheme.textMedium),
+              ).textTheme.bodyLarge?.copyWith(color: AppTheme.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
